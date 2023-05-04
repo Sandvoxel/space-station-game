@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 use bevy::input::keyboard::KeyboardInput;
+use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
 
 #[derive(Component, Clone)]
@@ -15,6 +16,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_system(rotate)
+        .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
 }
 
@@ -53,8 +55,7 @@ fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Que
                 target_transform.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, pos.rotation, 0.0);
                 transform.rotation = dir.rotation;
             }
-
-                //pos.angle += 0.1;
+            //pos.angle += 0.01;
 
         }
     }
@@ -81,13 +82,22 @@ fn setup(
         ..default()
     }).insert(TargetObject);
     // light
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 1500.0,
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 10000.0,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        cascade_shadow_config: CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }.into(),
         ..default()
     });
     let pos = Position {
