@@ -1,7 +1,11 @@
+mod world;
+
 use std::f32::consts::PI;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
+use world::mesh::generate_mesh;
 
 #[derive(Component, Clone)]
 struct Position {
@@ -14,6 +18,7 @@ struct TargetObject;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_startup_system(setup)
         .add_system(rotate)
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
@@ -21,7 +26,6 @@ fn main() {
 }
 
 fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Query<&mut Transform, With<Camera>>, mut data: Query<&mut Position>, mut object: Query<&mut Transform, (With<TargetObject>, Without<Camera>)>){
-
     for mut pos in &mut data {
         for mut transform in camera.iter_mut() {
 
@@ -41,7 +45,7 @@ fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Que
             let sin_angle = pos.angle.sin();
             let cos_angle = pos.angle.cos();
 
-            let mult: f32 = 5.0;
+            let mult: f32 = 20.0;
 
             transform.translation.x = sin_angle * mult;
             transform.translation.z = cos_angle * mult;
@@ -55,11 +59,10 @@ fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Que
                 target_transform.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, pos.rotation, 0.0);
                 transform.rotation = dir.rotation;
             }
-            //pos.angle += 0.01;
+            pos.angle += 0.01;
 
         }
     }
-
 }
 
 /// set up a simple 3D scene
@@ -68,19 +71,26 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    let mesh = generate_mesh(200, 0.1 as f32);
+
     // plane
     commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(5.0).into()),
+        mesh: meshes.add(mesh.clone()),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
-    });
-    // cube
+    }).insert(RigidBody::Fixed).insert(Collider::from_bevy_mesh(&mesh, &Default::default()).unwrap());
+
+
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        mesh: meshes.add(Mesh::from(shape::Capsule { radius: 1.0, rings: 0, depth: 2.0, latitudes: 16, longitudes: 32, uv_profile: Default::default() })),
         material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..default()
-    }).insert(TargetObject);
+    }).insert(RigidBody::Dynamic)
+        .insert(Collider::ball(1.0))
+        .insert(Restitution::coefficient(0.0))
+        .insert(TransformBundle::from(Transform::from_xyz(0.0, 4.0, 0.0)))
+        .insert(TargetObject);
     // light
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -109,11 +119,11 @@ fn setup(
     let sin_angle = pos.angle.sin();
     let cos_angle = pos.angle.cos();
 
-    let mult: f32 = 5.0;
+    let mult: f32 = 20.0;
 
     // camera
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(sin_angle * mult, 5.0, cos_angle * mult).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(sin_angle * mult, 20.0, cos_angle * mult).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 }
