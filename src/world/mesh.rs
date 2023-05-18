@@ -13,8 +13,8 @@ pub fn generate_mesh(size: usize, cell_size: f32) -> Mesh {
 
     let map = &PlaneMapBuilder::<_, 2>::new(&fbm)
         .set_size(size, size)
-        .set_x_bounds(-5.0, 5.0)
-        .set_y_bounds(-5.0, 5.0)
+        .set_x_bounds(-1.0, 1.0)
+        .set_y_bounds(-1.0, 1.0)
         .build();
 
 

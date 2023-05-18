@@ -1,11 +1,18 @@
 mod world;
+mod player;
 
 use std::f32::consts::PI;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
+use bevy::prelude::shape::{Box, Cube, Plane};
+use bevy::window::CursorGrabMode;
 use bevy_rapier3d::prelude::*;
 use world::mesh::generate_mesh;
+use crate::player::player_controller;
+use crate::player::player_controller::{player_controller, player_grounded};
+use crate::player::player_spawner::spawn_player;
+use crate::player::camera_controller::camera_controller;
 
 #[derive(Component, Clone)]
 struct Position {
@@ -19,13 +26,14 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_startup_system(setup)
-        .add_system(rotate)
+        .add_plugin(RapierDebugRenderPlugin::default())
+
+        .add_startup_systems((setup, spawn_player).chain())
+        .add_systems((player_grounded, camera_controller, player_controller))
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
 }
-
-fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Query<&mut Transform, With<Camera>>, mut data: Query<&mut Position>, mut object: Query<&mut Transform, (With<TargetObject>, Without<Camera>)>){
+/*fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Query<&mut Transform, With<Camera>>, mut data: Query<&mut Position>, mut object: Query<&mut Transform, (With<TargetObject>, Without<Camera>)>){
     for mut pos in &mut data {
         for mut transform in camera.iter_mut() {
 
@@ -59,38 +67,51 @@ fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Que
                 target_transform.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, pos.rotation, 0.0);
                 transform.rotation = dir.rotation;
             }
-            pos.angle += 0.01;
+            //pos.angle += 0.01;
 
         }
     }
-}
+}*/
 
 /// set up a simple 3D scene
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut window: Query<&mut Window>,
 ) {
-    let mesh = generate_mesh(200, 0.1 as f32);
+    let mesh = Plane::from_size(100 as f32);
 
     // plane
     commands.spawn(PbrBundle {
-        mesh: meshes.add(mesh.clone()),
+        mesh: meshes.add(Mesh::from(mesh.clone())),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
-    }).insert(RigidBody::Fixed).insert(Collider::from_bevy_mesh(&mesh, &Default::default()).unwrap());
+    })
+        .insert(RigidBody::Fixed)
+        .insert(Collider::from_bevy_mesh(&Mesh::from(mesh), &ComputedColliderShape::TriMesh).unwrap());
 
+    let cube = Box::new(10.0, 1.0, 10.0);
 
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Capsule { radius: 1.0, rings: 0, depth: 2.0, latitudes: 16, longitudes: 32, uv_profile: Default::default() })),
-        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
+        mesh: meshes.add(Mesh::from(cube.clone())),
+        material: materials.add(Color::RED.into()),
         ..default()
-    }).insert(RigidBody::Dynamic)
-        .insert(Collider::ball(1.0))
-        .insert(Restitution::coefficient(0.0))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, 4.0, 0.0)))
-        .insert(TargetObject);
+    })
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(5.0, 0.5, 5.0));
+
+    /*    commands.spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Capsule { radius: 1.0, rings: 0, depth: 2.0, latitudes: 16, longitudes: 32, uv_profile: Default::default() })),
+            material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+            transform: Transform::from_xyz(0.0, 10.0, 0.0),
+            ..default()
+        }).insert(RigidBody::Dynamic)
+            .insert(Collider::from_bevy_mesh(&Mesh::from(
+                shape::Capsule { radius: 1.0, rings: 0, depth: 2.0, latitudes: 16, longitudes: 32, uv_profile: Default::default() }
+            ), &Default::default()).unwrap())
+            .insert(Restitution::coefficient(0.001))
+            .insert(TargetObject);*/
     // light
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -110,20 +131,8 @@ fn setup(
         }.into(),
         ..default()
     });
-    let pos = Position {
-        angle: 45.0 * PI/180.0,
-        rotation: 0.0
-    };
-    commands.spawn(pos.clone());
 
-    let sin_angle = pos.angle.sin();
-    let cos_angle = pos.angle.cos();
-
-    let mult: f32 = 20.0;
-
-    // camera
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(sin_angle * mult, 20.0, cos_angle * mult).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    let mut window = window.single_mut();
+    window.cursor.visible = false;
+    window.cursor.grab_mode = CursorGrabMode::Locked;
 }
