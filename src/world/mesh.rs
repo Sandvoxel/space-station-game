@@ -4,7 +4,7 @@ use bevy::render::mesh::{Indices, PrimitiveTopology};
 use noise::{Fbm, Perlin};
 use noise::utils::{NoiseMapBuilder, PlaneMapBuilder};
 
-pub fn generate_mesh(size: usize, cell_size: f32) -> Mesh {
+pub fn _generate_mesh(size: usize, cell_size: f32) -> Mesh {
     let mut positions = Vec::with_capacity(size * size);
     let mut indices = Vec::with_capacity(size * size * 6);
 

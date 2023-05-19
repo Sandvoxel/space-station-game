@@ -2,34 +2,27 @@ mod world;
 mod player;
 
 use std::f32::consts::PI;
-use bevy::input::keyboard::KeyboardInput;
+
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
-use bevy::prelude::shape::{Box, Cube, Plane};
+use bevy::prelude::shape::{Box, Plane};
 use bevy::window::CursorGrabMode;
+
 use bevy_rapier3d::prelude::*;
-use world::mesh::generate_mesh;
-use crate::player::player_controller;
-use crate::player::player_controller::{player_controller, player_grounded};
+
+
+use crate::player::player_controller::{player_controller};
 use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
-
-#[derive(Component, Clone)]
-struct Position {
-    angle: f32,
-    rotation: f32
-}
-#[derive(Component, Clone)]
-struct TargetObject;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierDebugRenderPlugin::default())
+        //.add_plugin(RapierDebugRenderPlugin::default())
 
         .add_startup_systems((setup, spawn_player).chain())
-        .add_systems((player_grounded, camera_controller, player_controller))
+        .add_systems((player_controller, camera_controller))
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
 }
@@ -96,6 +89,7 @@ fn setup(
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(cube.clone())),
         material: materials.add(Color::RED.into()),
+        transform: Transform::default().with_rotation(Quat::from_euler(EulerRot::XYZ, 10., 0., 0.)),
         ..default()
     })
         .insert(RigidBody::Fixed)

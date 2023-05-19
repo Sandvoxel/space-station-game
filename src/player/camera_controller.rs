@@ -1,8 +1,8 @@
-use std::f32::consts::PI;
+
 use bevy::input::Input;
 use bevy::input::mouse::MouseMotion;
-use bevy::math::{EulerRot, Quat, Vec2, vec3, Vec3};
-use bevy::prelude::{Camera, EventReader, info, KeyCode, MouseButton, Query, Res, Transform, Window, With, Without};
+use bevy::math::{EulerRot, Quat, vec3};
+use bevy::prelude::{Camera, EventReader, KeyCode, Query, Res, Transform, Window, With, Without};
 use bevy::window::CursorGrabMode;
 use bevy_rapier3d::na::clamp;
 use crate::player::data::{CameraRotation, Player};
@@ -23,7 +23,7 @@ pub fn camera_controller(
 
             for ev in motion_evr.iter() {
                 rotation.look_dir.x = clamp(&rotation.look_dir.x + -&ev.delta.y * SCALE, -90f32.to_radians(),90f32.to_radians() );
-                rotation.look_dir.y = &rotation.look_dir.y + &ev.delta.x * SCALE;
+                rotation.look_dir.y = &rotation.look_dir.y + -&ev.delta.x * SCALE;
             }
 
             let look_dir =  rotation.look_dir.clone();

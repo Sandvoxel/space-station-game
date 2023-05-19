@@ -1,14 +1,14 @@
 use bevy::asset::Assets;
 use bevy::math::{Vec2, Vec3, vec3};
 use bevy::pbr::StandardMaterial;
-use bevy::prelude::{Camera3dBundle, Color, Commands, Mesh, ResMut, shape, Transform, Window};
+use bevy::prelude::{Camera3dBundle, Color, Commands, Mesh, ResMut, shape, Transform};
 use bevy::utils::default;
-use bevy::window::CursorGrabMode;
-use bevy_rapier3d::dynamics::{RigidBody, Sleeping, Velocity};
-use bevy_rapier3d::geometry::{Collider, ComputedColliderShape};
-use bevy_rapier3d::prelude::Ccd;
+
+use bevy_rapier3d::dynamics::{RigidBody};
+use bevy_rapier3d::geometry::{Collider};
+
 use crate::player::data::{CameraRotation, Player, PlayerBundle};
-use crate::TargetObject;
+
 
 pub fn spawn_player(
     mut commands: Commands,

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use bevy_rapier3d::control::{CharacterLength, KinematicCharacterController};
-use bevy_rapier3d::dynamics::LockedAxes;
-use bevy_rapier3d::prelude::{Collider, Friction, QueryFilterFlags, Restitution, RigidBody};
+use bevy_rapier3d::control::{KinematicCharacterController};
+
+use bevy_rapier3d::prelude::{Collider};
 
 
 #[derive(Component, Clone)]
