@@ -2,7 +2,7 @@
 
 use bevy::input::Input;
 
-use bevy::math::{vec3};
+use bevy::math::{vec3, Vec3};
 use bevy::prelude::{KeyCode, Query, Res, Time, Transform, With};
 
 use bevy_rapier3d::control::{KinematicCharacterController, KinematicCharacterControllerOutput};
@@ -20,7 +20,7 @@ pub fn player_controller(
     key: Res<Input<KeyCode>>,
 ) {
     if let Ok((mut player,mut player_controller,transform)) = players.get_single_mut() {
-        let mut movement_direction = transform.rotation * vec3(0., 0., 0.);
+        let mut movement_direction = Vec3::ZERO;
 
         if key.pressed(KeyCode::W) {
             movement_direction += vec3(0., 0.,-1.)
@@ -47,7 +47,7 @@ pub fn player_controller(
                 player.velocity.y = 0.;
             }
 
-            if key.just_pressed(KeyCode::Space) && output.grounded.clone() {
+            if key.just_pressed(KeyCode::Space) && output.grounded {
                 player.velocity.y = 0.3;
             }
 

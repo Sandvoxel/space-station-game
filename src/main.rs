@@ -1,16 +1,14 @@
 mod world;
 mod player;
+mod ship;
 
 use std::f32::consts::PI;
-
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
-use bevy::prelude::shape::{Box, Plane};
+use bevy::prelude::shape::{Plane};
 use bevy::window::CursorGrabMode;
-
 use bevy_rapier3d::prelude::*;
-
-
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::player::player_controller::{player_controller};
 use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
@@ -20,9 +18,10 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         //.add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(WorldInspectorPlugin::new())
 
         .add_startup_systems((setup, spawn_player).chain())
-        .add_systems((player_controller, camera_controller))
+        .add_systems((player_controller, camera_controller).chain())
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
 }
@@ -84,16 +83,7 @@ fn setup(
         .insert(RigidBody::Fixed)
         .insert(Collider::from_bevy_mesh(&Mesh::from(mesh), &ComputedColliderShape::TriMesh).unwrap());
 
-    let cube = Box::new(10.0, 1.0, 10.0);
 
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(cube.clone())),
-        material: materials.add(Color::RED.into()),
-        transform: Transform::default().with_rotation(Quat::from_euler(EulerRot::XYZ, 10., 0., 0.)),
-        ..default()
-    })
-        .insert(RigidBody::Fixed)
-        .insert(Collider::cuboid(5.0, 0.5, 5.0));
 
     /*    commands.spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Capsule { radius: 1.0, rings: 0, depth: 2.0, latitudes: 16, longitudes: 32, uv_profile: Default::default() })),
