@@ -19,11 +19,12 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierDebugRenderPlugin::default())
+        //.add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin::new())
 
         .add_startup_systems((setup, spawn_engine_room, spawn_player).chain())
-        .add_systems((player_controller, camera_controller).chain())
+        .add_system(camera_controller)
+        .add_system(player_controller.before(camera_controller))
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
 }

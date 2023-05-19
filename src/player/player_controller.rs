@@ -4,13 +4,14 @@ use bevy::input::Input;
 use bevy::log::info;
 
 use bevy::math::{vec3, Vec3};
-use bevy::prelude::{KeyCode, Query, Res, Time, Transform, With};
+use bevy::prelude::{Camera, KeyCode, Query, Res, Time, Transform, With, Without};
 
 use bevy_rapier3d::control::{KinematicCharacterController, KinematicCharacterControllerOutput};
 use bevy_rapier3d::na::clamp;
+use bevy_rapier3d::plugin::RapierContext;
 
 
-use crate::player::data::{Player};
+use crate::player::data::{CameraRotation, Player};
 
 const MOVEMENT_SPEED: f32 = 10.0;
 const GRAVITY: f32 = -0.7;
@@ -58,6 +59,16 @@ pub fn player_controller(
         player.velocity.y = clamp(player.velocity.y, -5.0, 10.0);
         player_controller.translation = Some(transform.rotation * movement_direction + player.velocity);
 
+    }
+}
+
+pub fn player_internation(
+    cameras: Query<&Transform, (With<Camera>, Without<Player>)>,
+    rapier_context: Res<RapierContext>
+) {
+    if let Ok(camera) = cameras.get_single() {
+        let ray_pos = camera.translation;
+        let ray_dir = camera.rotation * Vec3::X;
     }
 }
 
