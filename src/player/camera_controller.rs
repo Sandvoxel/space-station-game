@@ -18,7 +18,7 @@ pub fn camera_controller(
 ){
     if let Ok(mut player) = players.get_single_mut() {
         if let Ok((mut camera, mut rotation)) = cameras.get_single_mut() {
-            let camera_pos = player.translation.clone() + vec3(0.0, 0.5, 0.0);
+            let camera_pos = player.translation.clone() + vec3(0.0, 1.5, 0.0);
             camera.translation = camera_pos;
 
             for ev in motion_evr.iter() {

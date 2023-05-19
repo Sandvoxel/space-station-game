@@ -2,25 +2,27 @@ mod world;
 mod player;
 mod ship;
 
+use std::alloc::dealloc;
 use std::f32::consts::PI;
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
-use bevy::prelude::shape::{Plane};
+use bevy::prelude::shape::{Plane,Box};
 use bevy::window::CursorGrabMode;
 use bevy_rapier3d::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::player::player_controller::{player_controller};
 use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
+use crate::ship::engine::spawn_engine_room;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        //.add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin::new())
 
-        .add_startup_systems((setup, spawn_player).chain())
+        .add_startup_systems((setup, spawn_engine_room, spawn_player).chain())
         .add_systems((player_controller, camera_controller).chain())
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
@@ -73,6 +75,7 @@ fn setup(
     mut window: Query<&mut Window>,
 ) {
     let mesh = Plane::from_size(100 as f32);
+    let companion_cube = Box::new(1.0,1.0,1.0);
 
     // plane
     commands.spawn(PbrBundle {
@@ -83,6 +86,15 @@ fn setup(
         .insert(RigidBody::Fixed)
         .insert(Collider::from_bevy_mesh(&Mesh::from(mesh), &ComputedColliderShape::TriMesh).unwrap());
 
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(companion_cube)),
+        material: materials.add(Color::RED.into()),
+        transform: Transform::from_translation(Vec3::new(0.0,10.0,0.0)),
+        ..default()
+    })
+        .insert(RigidBody::Dynamic)
+        .insert(Collider::cuboid(0.5,0.5,0.5));
 
 
     /*    commands.spawn(PbrBundle {
