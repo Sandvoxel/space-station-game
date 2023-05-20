@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::control::{KinematicCharacterController};
 
-use bevy_rapier3d::prelude::{Collider};
+use bevy_rapier3d::prelude::{Collider, CollisionGroups, Group};
 
 
 #[derive(Component, Clone)]
@@ -50,7 +50,11 @@ impl<M: Material> Default for PlayerBundle<M> {
             visibility: Default::default(),
             computed_visibility: Default::default(),
             collider: Default::default(),
-            rigid_body_type: KinematicCharacterController::default(),
+            rigid_body_type: KinematicCharacterController{
+                custom_mass: Some(200.0_f32),
+                filter_groups: Some(CollisionGroups::new(Group::ALL, Group::GROUP_1)),
+                ..default()
+            },
         }
     }
 }

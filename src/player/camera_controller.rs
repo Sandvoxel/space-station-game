@@ -43,11 +43,11 @@ pub fn camera_controller(
         }
     }
 
-    // if key.just_pressed(KeyCode::Q) {
-    //     let mut window = windows.single_mut();
-    //     window.cursor.visible = false;
-    //     window.cursor.grab_mode = CursorGrabMode::Locked;
-    // }
+    if key.just_pressed(KeyCode::Q) {
+        let mut window = windows.single_mut();
+        window.cursor.visible = false;
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+    }
     if key.just_pressed(KeyCode::Escape) {
         let mut window = windows.single_mut();
         window.cursor.visible = true;

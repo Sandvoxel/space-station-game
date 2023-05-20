@@ -6,6 +6,7 @@ use bevy::utils::default;
 
 use bevy_rapier3d::dynamics::{RigidBody};
 use bevy_rapier3d::geometry::{Collider};
+use bevy_rapier3d::prelude::{CollisionGroups, Group, QueryFilterFlags};
 
 use crate::player::data::{CameraRotation, Player, PlayerBundle};
 
@@ -27,13 +28,12 @@ pub fn spawn_player(
     };
 
     commands.spawn(PlayerBundle{
-        mesh: meshes.add(Mesh::from(mesh.clone())),
+        mesh: meshes.add(Mesh::from(mesh)),
         material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
         transform: Transform::from_xyz(0.0,10.0,0.0),
         collider: Collider::capsule( vec3(0.,0.5,0.0), vec3(0.,-0.5,0.0), 1.),
         ..default()
     })
-        .insert(RigidBody::KinematicPositionBased)
         .insert(Player::default());
 
     commands.spawn(Camera3dBundle {

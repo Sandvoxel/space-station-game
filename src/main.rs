@@ -10,10 +10,11 @@ use bevy::prelude::shape::{Plane,Box};
 use bevy::window::CursorGrabMode;
 use bevy_rapier3d::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use crate::player::player_controller::{player_controller};
+use crate::player::player_controller::{player_controller, player_internation};
 use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
 use crate::ship::engine::spawn_engine_room;
+use crate::ship::interactables_controllers::valve_controller;
 
 fn main() {
     App::new()
@@ -24,6 +25,8 @@ fn main() {
 
         .add_startup_systems((setup, spawn_engine_room, spawn_player).chain())
         .add_system(camera_controller)
+        .add_system(player_internation)
+        .add_system(valve_controller)
         .add_system(player_controller.before(camera_controller))
         .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
