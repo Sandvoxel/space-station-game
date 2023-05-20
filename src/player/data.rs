@@ -25,9 +25,7 @@ pub struct CameraRotation {
 }
 
 #[derive(Bundle, Clone)]
-pub struct PlayerBundle<M: Material> {
-    pub mesh: Handle<Mesh>,
-    pub material: Handle<M>,
+pub struct PlayerBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     /// User indication of whether an entity is visible
@@ -40,11 +38,9 @@ pub struct PlayerBundle<M: Material> {
 
 }
 
-impl<M: Material> Default for PlayerBundle<M> {
+impl Default for PlayerBundle {
     fn default() -> Self {
         Self {
-            mesh: Default::default(),
-            material: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),
             visibility: Default::default(),

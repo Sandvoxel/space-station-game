@@ -3,6 +3,8 @@ mod player;
 mod ship;
 
 use std::f32::consts::PI;
+use std::thread::spawn;
+use bevy::ecs::schedule::NodeId::System;
 use bevy::pbr::{CascadeShadowConfigBuilder};
 use bevy::prelude::*;
 use bevy::prelude::shape::{Plane,Box};
@@ -12,17 +14,27 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::player::player_controller::{player_controller, player_internation};
 use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
-use crate::ship::engine::{spawn_engine_room, turn_shaft};
+use crate::ship::engine::{load_scene, LevelAsset, spawn_engine_room, spawn_scene, turn_shaft};
 use crate::ship::interactables_controllers::valve_controller;
+
+#[derive(States ,Debug, Clone, Eq, PartialEq, Hash, Default)]
+pub enum AppState {
+    #[default]
+    Loading,
+    InGame,
+}
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        //.add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin::new())
-
-        .add_startup_systems((setup, spawn_engine_room, spawn_player).chain())
+        .add_state::<AppState>()
+        .init_resource::<LevelAsset>()
+        .add_startup_systems((spawn_engine_room, setup, spawn_player).chain())
+        .add_system(load_scene.in_schedule(OnEnter(AppState::Loading)))
+        .add_system(spawn_scene.in_set(OnUpdate(AppState::Loading)))
         .add_system(camera_controller)
         .add_system(player_internation)
         .add_system(valve_controller)
@@ -112,6 +124,21 @@ fn setup(
             .insert(Restitution::coefficient(0.001))
             .insert(TargetObject);*/
     // light
+
+    commands.spawn(PointLightBundle{
+        point_light: PointLight{
+            color: Color::WHITE,
+            intensity: 40.0,
+            range: 600.0,
+            radius: 100.0,
+            shadows_enabled: true,
+            shadow_depth_bias: 0.0,
+            shadow_normal_bias: 0.0,
+        },
+        transform: Transform::from_xyz( 5.,5.,0.),
+        ..default()
+    });
+
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 10000.0,

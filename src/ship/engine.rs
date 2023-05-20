@@ -1,15 +1,74 @@
-use bevy::asset::{Assets, AssetServer, Handle};
+use std::thread::sleep;
+use std::time::Duration;
+use bevy::asset::{Asset, Assets, AssetServer, Handle, LoadState};
 use bevy::core::Name;
+use bevy::gltf::GltfError::Gltf;
 use bevy::math::{EulerRot, Quat, Vec3};
 use bevy::pbr::{PbrBundle, StandardMaterial};
-use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle};
+use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle, SceneBundle, info, NextState};
 use bevy::prelude::shape::{Cylinder};
-use bevy::scene::Scene;
 use bevy_rapier3d::dynamics::{CoefficientCombineRule, RigidBody};
-use bevy_rapier3d::geometry::{Collider};
+use bevy_rapier3d::geometry::{Collider, VHACDParameters};
 
-use bevy_rapier3d::prelude::{CollisionGroups, Friction, Group};
+use bevy_rapier3d::prelude::{CollisionGroups, ComputedColliderShape, Friction, Group};
+use crate::AppState;
 use crate::ship::interactables_controllers::Valve;
+
+#[derive(bevy::ecs::system::Resource, Default)]
+pub struct LevelAsset(pub Handle<bevy::gltf::Gltf>);
+
+
+
+pub fn load_scene(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+) {
+    let scene = server.load("EngineRoom.gltf");
+    commands.insert_resource(LevelAsset(scene));
+}
+
+pub fn spawn_scene(
+    mut commands: Commands,
+    my: Res<LevelAsset>,
+    assets: Res<Assets<bevy::gltf::Gltf>>,
+    mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
+    raw_mesh_assets: Res<Assets<Mesh>>,
+    server: Res<AssetServer>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut next_state: ResMut<NextState<AppState>>,
+) {
+
+    if server.get_load_state(&my.0) == LoadState::Loaded {
+        info!("Loaded");
+        if let Some(gltf) = assets.get(&my.0) {
+
+            for test in gltf.named_meshes.clone(){
+                if let Some(mesh) = mesh_assets.get(&test.1){
+                    if let Some(extra) = mesh.extras.clone(){
+                        info!("{}", extra.value);
+                        for prim in mesh.primitives.clone() {
+                            if let Some(mesh) = raw_mesh_assets.get(&prim.mesh){
+                                commands.spawn(RigidBody::Fixed)
+                                     .insert(
+                                         Collider::from_bevy_mesh(&mesh,
+                                                                      &ComputedColliderShape::ConvexDecomposition(VHACDParameters::default())).unwrap());
+
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+            commands.spawn(SceneBundle{
+                scene: gltf.scenes[0].clone(),
+                ..default()
+            });
+            next_state.set(AppState::InGame)
+        }
+    }
+}
 
 
 pub fn spawn_engine_room(
@@ -72,8 +131,10 @@ pub fn spawn_engine_room(
 
 pub fn turn_shaft(
     valves: Query<&Valve, With<Valve>>,
-    mut shaft: Query<&mut Transform, (With<Name>, Without<Valve>)>
+    mut shaft: Query<&mut Transform, (With<Name>, Without<Valve>)>,
+    server: Res<AssetServer>
 ){
+
     if let Some(valve) = valves.iter().find(|valve| valve.identifier == 0) {
         if let Ok(mut transform) = shaft.get_single_mut(){
             transform.rotation *= Quat::from_euler(EulerRot::XYZ, 0., 0.,valve.current_value.to_radians());

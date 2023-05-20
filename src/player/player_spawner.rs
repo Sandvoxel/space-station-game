@@ -28,8 +28,6 @@ pub fn spawn_player(
     };
 
     commands.spawn(PlayerBundle{
-        mesh: meshes.add(Mesh::from(mesh)),
-        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
         transform: Transform::from_xyz(0.0,10.0,0.0),
         collider: Collider::capsule( vec3(0.,0.5,0.0), vec3(0.,-0.5,0.0), 1.),
         ..default()
