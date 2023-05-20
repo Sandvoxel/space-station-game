@@ -1,16 +1,19 @@
 use bevy::asset::{Assets, AssetServer, Handle};
+use bevy::core::Name;
 use bevy::math::{EulerRot, Quat, Vec2, Vec3};
 use bevy::pbr::{PbrBundle, StandardMaterial};
-use bevy::prelude::{Color, Commands, default, Label, Mesh, Res, ResMut, Transform, Component};
-use bevy::prelude::shape::{Box};
+use bevy::prelude::{Color, Commands, default, Label, Mesh, Res, ResMut, Transform, Component, Query, With, Without};
+use bevy::prelude::shape::{Box, Cylinder};
 use bevy_rapier3d::dynamics::{CoefficientCombineRule, RigidBody};
 use bevy_rapier3d::geometry::{Collider};
+use bevy_rapier3d::parry::transformation::utils::transform;
 use bevy_rapier3d::prelude::{CollisionGroups, Friction, Group, ActiveCollisionTypes};
 use crate::ship::interactables_controllers::Valve;
 
 
 pub fn spawn_engine_room(
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     server: Res<AssetServer>,
 ){
@@ -33,9 +36,9 @@ pub fn spawn_engine_room(
             combine_rule: CoefficientCombineRule::Min
         })
         .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-        .insert(Valve::default());
+        .insert(Valve::new(0.1, 0));
 
-    commands.spawn(PbrBundle {
+/*    commands.spawn(PbrBundle {
         mesh: untitled_spoke.clone(),
         material: materials.add(Color::RED.into()),
         transform: Transform::default().with_translation(Vec3::new(0.,2.,5.))
@@ -45,17 +48,34 @@ pub fn spawn_engine_room(
         .insert(RigidBody::KinematicPositionBased)
         .insert(Collider::cylinder(0.3,2.5))
         .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-        .insert(Valve::default());
-
-    /*
+        .insert(Valve::new(10., "valve2"));*/
 
 
-        commands.spawn(PbrBundle {
-            mesh: sams_stinky_valve.clone(),
-            material: materials.add(Color::BEIGE.into()),
-            transform: Transform::default().with_translation(Vec3::new(5.,5.,0.)).with_rotation(Quat::from_euler(EulerRot::XYZ, 10., 0., 0.)),
-            ..default()
-        })
-            .insert(RigidBody::Dynamic)
-            .insert(Collider::cylinder(0.3,2.5));*/
+    let shaft = Cylinder{
+        radius: 1.,
+        height: 20.,
+        ..default()
+    };
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shaft)),
+        material: materials.add(Color::RED.into()),
+        transform: Transform::default().with_translation(Vec3::new(0.,2.,5.))
+            .with_rotation(Quat::from_euler(EulerRot::XYZ, 0., 0., 90.0_f32.to_radians())),
+        ..default()
+    }).insert(Name::new("shaft"));
+
+}
+
+
+
+pub fn turn_shaft(
+    valves: Query<&Valve, With<Valve>>,
+    mut shaft: Query<&mut Transform, (With<Name>, Without<Valve>)>
+){
+    if let Ok(valve) = valves.get_single() {
+        if let Ok(mut transform) = shaft.get_single_mut(){
+            transform.rotation *= Quat::from_euler(EulerRot::XYZ, 0., valve.current_value.to_radians(),0.);
+        }
+    }
 }

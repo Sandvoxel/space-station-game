@@ -89,7 +89,7 @@ pub fn player_internation(
                 for (mut valve, valve_entity) in valves.iter_mut() {
                     if valve_entity == entity {
                         for ev in scroll_evr.iter() {
-                            valve.current_value += ev.y;
+                            valve.current_value += ev.y * valve.sensitivity;
                         }
                     }
                 }

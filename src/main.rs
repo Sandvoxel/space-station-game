@@ -2,7 +2,6 @@ mod world;
 mod player;
 mod ship;
 
-use std::alloc::dealloc;
 use std::f32::consts::PI;
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
@@ -13,7 +12,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use crate::player::player_controller::{player_controller, player_internation};
 use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
-use crate::ship::engine::spawn_engine_room;
+use crate::ship::engine::{spawn_engine_room, turn_shaft};
 use crate::ship::interactables_controllers::valve_controller;
 
 fn main() {
@@ -27,8 +26,8 @@ fn main() {
         .add_system(camera_controller)
         .add_system(player_internation)
         .add_system(valve_controller)
+        .add_system(turn_shaft)
         .add_system(player_controller.before(camera_controller))
-        .insert_resource(DirectionalLightShadowMap { size: 2048 })
         .run();
 }
 /*fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Query<&mut Transform, With<Camera>>, mut data: Query<&mut Position>, mut object: Query<&mut Transform, (With<TargetObject>, Without<Camera>)>){
@@ -126,7 +125,7 @@ fn setup(
         },
         cascade_shadow_config: CascadeShadowConfigBuilder {
             first_cascade_far_bound: 4.0,
-            maximum_distance: 10.0,
+            maximum_distance: 60.0,
             ..default()
         }.into(),
         ..default()

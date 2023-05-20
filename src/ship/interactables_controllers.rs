@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+use bevy::core::Name;
 use bevy::math::{EulerRot, Quat};
 use bevy::prelude::{Query, Transform, Vec2, With, Component};
 use lerp::Lerp;
@@ -7,7 +9,7 @@ pub struct Valve{
     pub current_value: f32,
     pub sensitivity: f32,
     pub bounds: Vec2,
-    pub id: u32,
+    pub identifier: u32,
 
     current_rotation_angle: f32
 }
@@ -26,13 +28,13 @@ pub fn valve_controller(
 }
 
 
-impl Default for Valve {
-    fn default() -> Self {
+impl Valve {
+    pub fn new(sensitivity: f32, identifier: u32) -> Self {
         Valve{
             current_value: 0.0,
-            sensitivity: 0.0,
+            sensitivity,
             bounds: Vec2::ZERO,
-            id: 0,
+            identifier,
             current_rotation_angle: 0.0,
         }
     }
