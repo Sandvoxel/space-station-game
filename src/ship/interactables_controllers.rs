@@ -1,5 +1,5 @@
-use std::borrow::Cow;
-use bevy::core::Name;
+
+
 use bevy::math::{EulerRot, Quat};
 use bevy::prelude::{Query, Transform, Vec2, With, Component};
 use lerp::Lerp;
@@ -33,7 +33,7 @@ impl Valve {
         Valve{
             current_value: 0.0,
             sensitivity,
-            bounds: Vec2::ZERO,
+            bounds: Vec2::new(0.,360.0_f32.to_radians()),
             identifier,
             current_rotation_angle: 0.0,
         }

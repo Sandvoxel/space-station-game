@@ -2,8 +2,8 @@
 
 use bevy::input::Input;
 use bevy::input::mouse::MouseWheel;
-use bevy::math::{Quat, vec3, Vec3};
-use bevy::prelude::{Camera, Entity, EventReader, KeyCode, Query, Res, ResMut, Time, Transform, With, Without};
+use bevy::math::{vec3, Vec3};
+use bevy::prelude::{Camera, Entity, EventReader, KeyCode, Query, Res, Time, Transform, With, Without};
 use bevy_rapier3d::control::{KinematicCharacterController, KinematicCharacterControllerOutput};
 use bevy_rapier3d::na::clamp;
 use bevy_rapier3d::plugin::RapierContext;
@@ -62,7 +62,7 @@ pub fn player_controller(
 
 pub fn player_internation(
     cameras: Query<&Transform, (With<Camera>, Without<Player>)>,
-    kinematic_output: Query<(&KinematicCharacterControllerOutput), With<Player>>,
+    kinematic_output: Query<&KinematicCharacterControllerOutput, With<Player>>,
     player_collider: Query<Entity, With<Player>>,
     mut valves: Query<(&mut Valve, Entity), (With<Valve>, Without<Camera>, Without<Player>)>,
     mut scroll_evr: EventReader<MouseWheel>,
@@ -89,7 +89,9 @@ pub fn player_internation(
                 for (mut valve, valve_entity) in valves.iter_mut() {
                     if valve_entity == entity {
                         for ev in scroll_evr.iter() {
-                            valve.current_value += ev.y * valve.sensitivity;
+                            valve.current_value = clamp(valve.current_value + ev.y * valve.sensitivity,
+                                                        valve.bounds.x,
+                                                        valve.bounds.y);
                         }
                     }
                 }

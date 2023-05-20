@@ -4,9 +4,9 @@ use bevy::pbr::StandardMaterial;
 use bevy::prelude::{Camera3dBundle, Color, Commands, Mesh, ResMut, shape, Transform};
 use bevy::utils::default;
 
-use bevy_rapier3d::dynamics::{RigidBody};
+
 use bevy_rapier3d::geometry::{Collider};
-use bevy_rapier3d::prelude::{CollisionGroups, Group, QueryFilterFlags};
+
 
 use crate::player::data::{CameraRotation, Player, PlayerBundle};
 

@@ -1,13 +1,14 @@
 use bevy::asset::{Assets, AssetServer, Handle};
 use bevy::core::Name;
-use bevy::math::{EulerRot, Quat, Vec2, Vec3};
+use bevy::math::{EulerRot, Quat, Vec3};
 use bevy::pbr::{PbrBundle, StandardMaterial};
-use bevy::prelude::{Color, Commands, default, Label, Mesh, Res, ResMut, Transform, Component, Query, With, Without};
-use bevy::prelude::shape::{Box, Cylinder};
+use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle};
+use bevy::prelude::shape::{Cylinder};
+use bevy::scene::Scene;
 use bevy_rapier3d::dynamics::{CoefficientCombineRule, RigidBody};
 use bevy_rapier3d::geometry::{Collider};
-use bevy_rapier3d::parry::transformation::utils::transform;
-use bevy_rapier3d::prelude::{CollisionGroups, Friction, Group, ActiveCollisionTypes};
+
+use bevy_rapier3d::prelude::{CollisionGroups, Friction, Group};
 use crate::ship::interactables_controllers::Valve;
 
 
@@ -18,7 +19,7 @@ pub fn spawn_engine_room(
     server: Res<AssetServer>,
 ){
     let mesh: Handle<Mesh> = server.load("valve.glb#Mesh0/Primitive0");
-    let untitled_spoke: Handle<Mesh> = server.load("untitled_spoke.glb#Mesh0/Primitive0");
+    let _untitled_spoke: Handle<Mesh> = server.load("untitled_spoke.glb#Mesh0/Primitive0");
 
     commands.spawn(PbrBundle {
         mesh,
@@ -36,7 +37,7 @@ pub fn spawn_engine_room(
             combine_rule: CoefficientCombineRule::Min
         })
         .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-        .insert(Valve::new(0.1, 0));
+        .insert(Valve::new(1., 0));
 
 /*    commands.spawn(PbrBundle {
         mesh: untitled_spoke.clone(),
@@ -73,9 +74,9 @@ pub fn turn_shaft(
     valves: Query<&Valve, With<Valve>>,
     mut shaft: Query<&mut Transform, (With<Name>, Without<Valve>)>
 ){
-    if let Ok(valve) = valves.get_single() {
+    if let Some(valve) = valves.iter().find(|valve| valve.identifier == 0) {
         if let Ok(mut transform) = shaft.get_single_mut(){
-            transform.rotation *= Quat::from_euler(EulerRot::XYZ, 0., valve.current_value.to_radians(),0.);
+            transform.rotation *= Quat::from_euler(EulerRot::XYZ, 0., 0.,valve.current_value.to_radians());
         }
     }
 }

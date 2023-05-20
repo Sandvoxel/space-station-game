@@ -3,7 +3,7 @@ mod player;
 mod ship;
 
 use std::f32::consts::PI;
-use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
+use bevy::pbr::{CascadeShadowConfigBuilder};
 use bevy::prelude::*;
 use bevy::prelude::shape::{Plane,Box};
 use bevy::window::CursorGrabMode;
