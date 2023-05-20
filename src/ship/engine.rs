@@ -1,16 +1,14 @@
-use std::thread::sleep;
-use std::time::Duration;
 use bevy::asset::{Asset, Assets, AssetServer, Handle, LoadState};
 use bevy::core::Name;
-use bevy::gltf::GltfError::Gltf;
 use bevy::math::{EulerRot, Quat, Vec3};
 use bevy::pbr::{PbrBundle, StandardMaterial};
-use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle, SceneBundle, info, NextState};
+use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle, SceneBundle, info, NextState, TransformBundle};
 use bevy::prelude::shape::{Cylinder};
 use bevy_rapier3d::dynamics::{CoefficientCombineRule, RigidBody};
 use bevy_rapier3d::geometry::{Collider, VHACDParameters};
 
 use bevy_rapier3d::prelude::{CollisionGroups, ComputedColliderShape, Friction, Group};
+use serde::Deserialize;
 use crate::AppState;
 use crate::ship::interactables_controllers::Valve;
 
@@ -27,45 +25,84 @@ pub fn load_scene(
     commands.insert_resource(LevelAsset(scene));
 }
 
+#[derive(Deserialize, Copy, Clone, Debug)]
+struct ColliderType {
+    collider_type: ColliderTypes
+}
+#[derive(Deserialize, Copy, Clone, Debug)]
+enum ColliderTypes {
+    Box,
+    Valve
+}
+
 pub fn spawn_scene(
     mut commands: Commands,
     my: Res<LevelAsset>,
     assets: Res<Assets<bevy::gltf::Gltf>>,
+    node_assets: Res<Assets<bevy::gltf::GltfNode>>,
     mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
-    raw_mesh_assets: Res<Assets<Mesh>>,
     server: Res<AssetServer>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
-
     if server.get_load_state(&my.0) == LoadState::Loaded {
-        info!("Loaded");
         if let Some(gltf) = assets.get(&my.0) {
+            for test in gltf.named_nodes.clone() {
+                if let Some(node) = node_assets.get(&test.1) {
+                    if let Some(mesh) = &node.mesh {
+                        if let Some(mesh) = mesh_assets.get(mesh) {
+                            for prim in &mesh.primitives {
+                                if let Some(extra) = mesh.extras.clone() {
+                                    let collider: ColliderType = serde_json::from_str(extra.value.as_str()).unwrap();
 
-            for test in gltf.named_meshes.clone(){
-                if let Some(mesh) = mesh_assets.get(&test.1){
-                    if let Some(extra) = mesh.extras.clone(){
-                        info!("{}", extra.value);
-                        for prim in mesh.primitives.clone() {
-                            if let Some(mesh) = raw_mesh_assets.get(&prim.mesh){
-                                commands.spawn(RigidBody::Fixed)
-                                     .insert(
-                                         Collider::from_bevy_mesh(&mesh,
-                                                                      &ComputedColliderShape::ConvexDecomposition(VHACDParameters::default())).unwrap());
+                                    info!("{:?}", node.transform);
+                                    info!("{:?}", collider);
 
+                                    match collider.collider_type {
+                                        ColliderTypes::Box => {
+                                            commands.spawn(PbrBundle{
+                                                mesh: prim.mesh.clone(),
+                                                material: prim.material.clone().unwrap(),
+                                                transform: node.transform,
+                                                ..default()
+                                            })
+                                                .insert(RigidBody::Fixed)
+                                                .insert(
+                                                    Collider::cuboid(1., 1., 1.));
+                                        },
+                                        ColliderTypes::Valve => {
+                                            commands.spawn(PbrBundle {
+                                                mesh: prim.mesh.clone(),
+                                                material: prim.material.clone().unwrap(),
+                                                transform: node.transform,
+                                                ..default()
+                                            })
+                                                .insert(RigidBody::KinematicPositionBased)
+                                                .insert(Collider::cylinder(0.3,2.5))
+                                                .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
+                                                .insert(Valve::new(1., 0));
+                                        }
+                                    }
+
+                                } else {
+                                    commands.spawn(PbrBundle{
+                                        mesh: prim.mesh.clone(),
+                                        material: prim.material.clone().unwrap(),
+                                        transform: node.transform,
+                                        ..default()
+                                    });
+                                }
                             }
+
                         }
                     }
-
                 }
 
+                /*commands.spawn(SceneBundle {
+                    scene: gltf.scenes[0].clone(),
+                    ..default()
+                });*/
+                next_state.set(AppState::InGame)
             }
-
-            commands.spawn(SceneBundle{
-                scene: gltf.scenes[0].clone(),
-                ..default()
-            });
-            next_state.set(AppState::InGame)
         }
     }
 }
@@ -80,7 +117,7 @@ pub fn spawn_engine_room(
     let mesh: Handle<Mesh> = server.load("valve.glb#Mesh0/Primitive0");
     let _untitled_spoke: Handle<Mesh> = server.load("untitled_spoke.glb#Mesh0/Primitive0");
 
-    commands.spawn(PbrBundle {
+/*    commands.spawn(PbrBundle {
         mesh,
         material: materials.add(Color::RED.into()),
         transform: Transform::default()
@@ -96,7 +133,7 @@ pub fn spawn_engine_room(
             combine_rule: CoefficientCombineRule::Min
         })
         .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-        .insert(Valve::new(1., 0));
+        .insert(Valve::new(1., 0));*/
 
 /*    commands.spawn(PbrBundle {
         mesh: untitled_spoke.clone(),

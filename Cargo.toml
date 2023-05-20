@@ -11,6 +11,8 @@ noise = "0.8.2"
 bevy_rapier3d = "0.21.0"
 bevy-inspector-egui = "0.18.3"
 lerp = "0.4.0"
+serde = "1.0.160"
+serde_json = "1.0.96"
 
 
 [profile.dev.package.bevy_rapier3d]

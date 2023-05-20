@@ -92,7 +92,7 @@ fn setup(
     let mesh = Plane::from_size(100 as f32);
     let companion_cube = Box::new(1.0,1.0,1.0);
 
-    // plane
+ /*   // plane
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(mesh.clone())),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
@@ -101,7 +101,7 @@ fn setup(
         .insert(RigidBody::Fixed)
         .insert(Collider::from_bevy_mesh(&Mesh::from(mesh), &ComputedColliderShape::TriMesh).unwrap());
 
-
+*/
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(companion_cube)),
         material: materials.add(Color::RED.into()),
