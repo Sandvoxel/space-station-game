@@ -2,6 +2,7 @@
 
 use bevy::input::Input;
 use bevy::input::mouse::MouseWheel;
+use bevy::log::info;
 use bevy::math::{vec3, Vec3};
 use bevy::prelude::{Camera, Entity, EventReader, KeyCode, Query, Res, Time, Transform, With, Without};
 use bevy_rapier3d::control::{KinematicCharacterController, KinematicCharacterControllerOutput};

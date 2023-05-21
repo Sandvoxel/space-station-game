@@ -16,6 +16,7 @@ use crate::player::player_spawner::spawn_player;
 use crate::player::camera_controller::camera_controller;
 use crate::ship::engine::{load_scene, LevelAsset, spawn_engine_room, spawn_scene, turn_shaft};
 use crate::ship::interactables_controllers::valve_controller;
+use crate::world::ship::ship_manager;
 
 #[derive(States ,Debug, Clone, Eq, PartialEq, Hash, Default)]
 pub enum AppState {
@@ -35,52 +36,14 @@ fn main() {
         .add_startup_systems((spawn_engine_room, setup, spawn_player).chain())
         .add_system(load_scene.in_schedule(OnEnter(AppState::Loading)))
         .add_system(spawn_scene.in_set(OnUpdate(AppState::Loading)))
-        .add_system(camera_controller)
-        .add_system(player_internation)
-        .add_system(valve_controller)
-        .add_system(turn_shaft)
+        .add_system(camera_controller.in_set(OnUpdate(AppState::InGame)))
+        .add_system(player_internation.in_set(OnUpdate(AppState::InGame)))
+        .add_system(valve_controller.in_set(OnUpdate(AppState::InGame)))
+        .add_system(ship_manager.in_set(OnUpdate(AppState::InGame)))
+        .add_system(turn_shaft.in_set(OnUpdate(AppState::InGame)))
         .add_system(player_controller.before(camera_controller))
         .run();
 }
-/*fn rotate(mut keyboard_input_events: EventReader<KeyboardInput>, mut camera: Query<&mut Transform, With<Camera>>, mut data: Query<&mut Position>, mut object: Query<&mut Transform, (With<TargetObject>, Without<Camera>)>){
-    for mut pos in &mut data {
-        for mut transform in camera.iter_mut() {
-
-            for event in keyboard_input_events.iter() {
-                if let Some(key) = event.key_code {
-                    match key {
-                        KeyCode::A => {
-                            pos.rotation += -1.0 * PI/180.0;
-                        }
-                        KeyCode::D => {
-                            pos.rotation += 1.0 * PI/180.0;
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            let sin_angle = pos.angle.sin();
-            let cos_angle = pos.angle.cos();
-
-            let mult: f32 = 20.0;
-
-            transform.translation.x = sin_angle * mult;
-            transform.translation.z = cos_angle * mult;
-
-            if let Ok(mut target_transform) = object.get_single_mut() {
-                let camera_rotation = target_transform.translation;
-                let up_direction = Vec3::Y; // Set the up direction of the camera (default is y-axis)
-
-                let dir = transform.looking_at(camera_rotation, up_direction);
-
-                target_transform.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, pos.rotation, 0.0);
-                transform.rotation = dir.rotation;
-            }
-            //pos.angle += 0.01;
-
-        }
-    }
-}*/
 
 /// set up a simple 3D scene
 fn setup(

@@ -2,7 +2,7 @@ use bevy::asset::{Asset, Assets, AssetServer, Handle, LoadState};
 use bevy::core::Name;
 use bevy::math::{EulerRot, Quat, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, StandardMaterial};
-use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle, SceneBundle, info, NextState, TransformBundle};
+use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle, SceneBundle, info, NextState, TransformBundle, BuildChildren, ComputedVisibility, Visibility, SpatialBundle};
 use bevy::prelude::shape::{Cylinder};
 use bevy_rapier3d::dynamics::{CoefficientCombineRule, RigidBody};
 use bevy_rapier3d::geometry::{Collider, VHACDParameters};
@@ -11,6 +11,7 @@ use bevy_rapier3d::prelude::{CollisionGroups, ComputedColliderShape, Friction, G
 use serde::Deserialize;
 use crate::AppState;
 use crate::ship::interactables_controllers::Valve;
+use crate::world::types::{Ship, ShipGraphics};
 
 #[derive(bevy::ecs::system::Resource, Default)]
 pub struct LevelAsset(pub Handle<bevy::gltf::Gltf>);
@@ -46,6 +47,11 @@ pub fn spawn_scene(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if server.get_load_state(&my.0) == LoadState::Loaded {
+        let ship = commands.spawn(SpatialBundle::from_transform(Transform::from_xyz(0., 0., 0.)))
+            .insert(Ship{
+                roll: 0.
+            }).id();
+
         if let Some(gltf) = assets.get(&my.0) {
             for test in gltf.named_nodes.clone() {
                 if let Some(node) = node_assets.get(&test.1) {
@@ -67,7 +73,7 @@ pub fn spawn_scene(
                                                     Collider::cuboid(dim[0]/2., dim[2]/2., dim[1]/2.));
                                         },
                                         ColliderTypes::Valve{} => {
-                                            commands.spawn(PbrBundle {
+                                            let child = commands.spawn(PbrBundle {
                                                 mesh: prim.mesh.clone(),
                                                 material: prim.material.clone().unwrap(),
                                                 transform: node.transform,
@@ -76,7 +82,10 @@ pub fn spawn_scene(
                                                 .insert(RigidBody::KinematicPositionBased)
                                                 .insert(Collider::cylinder(0.3,2.5))
                                                 .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-                                                .insert(Valve::new(0.1, 0));
+                                                .insert(Valve::new(1., 0)).id();
+
+                                            commands.entity(ship).add_child(child);
+
                                         }
                                         ColliderTypes::Cylinder { dim } => {
                                             commands.spawn(RigidBody::Fixed)
@@ -87,12 +96,15 @@ pub fn spawn_scene(
                                     }
 
                                 } else {
-                                    commands.spawn(PbrBundle{
+                                    let child = commands.spawn(PbrBundle{
                                         mesh: prim.mesh.clone(),
                                         material: prim.material.clone().unwrap(),
                                         transform: node.transform,
+                                        visibility: Visibility::Visible,
                                         ..default()
-                                    });
+                                    }).id();
+                                    commands.entity(ship).add_child(child);
+
                                 }
                             }
 
@@ -100,10 +112,7 @@ pub fn spawn_scene(
                     }
                 }
 
-                /*commands.spawn(SceneBundle {
-                    scene: gltf.scenes[0].clone(),
-                    ..default()
-                });*/
+
                 next_state.set(AppState::InGame)
             }
         }
