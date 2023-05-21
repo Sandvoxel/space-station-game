@@ -52,7 +52,6 @@ pub fn spawn_scene(
                         if let Some(mesh) = mesh_assets.get(mesh) {
                             for prim in &mesh.primitives {
                                 if let Some(extra) = mesh.extras.clone() {
-                                    info!("{:?}", extra.value);
 
                                     let collider: ColliderTypes = serde_json::from_str(extra.value.as_str()).unwrap();
 
