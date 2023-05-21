@@ -127,15 +127,12 @@ fn setup(
 
     commands.spawn(PointLightBundle{
         point_light: PointLight{
+            intensity: 1600.0, // lumens - roughly a 100W non-halogen incandescent bulb
             color: Color::WHITE,
-            intensity: 40.0,
-            range: 600.0,
-            radius: 100.0,
             shadows_enabled: true,
-            shadow_depth_bias: 0.0,
-            shadow_normal_bias: 0.0,
+            ..default()
         },
-        transform: Transform::from_xyz( 5.,5.,0.),
+        transform: Transform::from_xyz( 0.,5.,0.),
         ..default()
     });
 

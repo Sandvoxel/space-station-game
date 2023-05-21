@@ -20,7 +20,7 @@ pub fn camera_controller(
 ){
     if let Ok(mut player) = players.get_single_mut() {
         if let Ok((mut camera, mut rotation)) = cameras.get_single_mut() {
-            let camera_pos = player.translation + vec3(0.0, 1.5, 0.0);
+            let camera_pos = player.translation + vec3(0.0, 2.5, 0.0);
             if let Ok(kinematic_output) = kinematic_output.get_single(){
                 camera.translation = kinematic_output.effective_translation + camera_pos;
             } else {

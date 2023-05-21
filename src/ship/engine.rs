@@ -31,8 +31,8 @@ struct ColliderType {
 }
 #[derive(Deserialize, Copy, Clone, Debug)]
 enum ColliderTypes {
-    Box,
-    Valve
+    Box {dim: [f32; 3]},
+    Valve {}
 }
 
 pub fn spawn_scene(
@@ -52,24 +52,21 @@ pub fn spawn_scene(
                         if let Some(mesh) = mesh_assets.get(mesh) {
                             for prim in &mesh.primitives {
                                 if let Some(extra) = mesh.extras.clone() {
-                                    let collider: ColliderType = serde_json::from_str(extra.value.as_str()).unwrap();
+                                    info!("{:?}", extra.value);
+
+                                    let collider: ColliderTypes = serde_json::from_str(extra.value.as_str()).unwrap();
 
                                     info!("{:?}", node.transform);
                                     info!("{:?}", collider);
 
-                                    match collider.collider_type {
-                                        ColliderTypes::Box => {
-                                            commands.spawn(PbrBundle{
-                                                mesh: prim.mesh.clone(),
-                                                material: prim.material.clone().unwrap(),
-                                                transform: node.transform,
-                                                ..default()
-                                            })
-                                                .insert(RigidBody::Fixed)
+                                    match collider {
+                                        ColliderTypes::Box{ dim } => {
+                                            commands.spawn(RigidBody::Fixed)
+                                                .insert(TransformBundle::from_transform(node.transform))
                                                 .insert(
-                                                    Collider::cuboid(1., 1., 1.));
+                                                    Collider::cuboid(dim[0]/2., dim[2]/2., dim[1]/2.));
                                         },
-                                        ColliderTypes::Valve => {
+                                        ColliderTypes::Valve{} => {
                                             commands.spawn(PbrBundle {
                                                 mesh: prim.mesh.clone(),
                                                 material: prim.material.clone().unwrap(),
