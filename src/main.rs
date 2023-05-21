@@ -134,7 +134,7 @@ fn setup(
         },
         transform: Transform::from_xyz( 0.,5.,0.),
         ..default()
-    });
+    }).insert(Name::new("shaft"));;
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {

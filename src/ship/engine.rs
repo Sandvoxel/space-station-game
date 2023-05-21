@@ -1,7 +1,7 @@
 use bevy::asset::{Asset, Assets, AssetServer, Handle, LoadState};
 use bevy::core::Name;
 use bevy::math::{EulerRot, Quat, Vec3};
-use bevy::pbr::{PbrBundle, StandardMaterial};
+use bevy::pbr::{PbrBundle, PointLight, StandardMaterial};
 use bevy::prelude::{Color, Commands, default, Mesh, Res, ResMut, Transform, Query, With, Without, DynamicSceneBundle, SceneBundle, info, NextState, TransformBundle};
 use bevy::prelude::shape::{Cylinder};
 use bevy_rapier3d::dynamics::{CoefficientCombineRule, RigidBody};
@@ -32,6 +32,7 @@ struct ColliderType {
 #[derive(Deserialize, Copy, Clone, Debug)]
 enum ColliderTypes {
     Box {dim: [f32; 3]},
+    Cylinder {dim: [f32; 2]},
     Valve {}
 }
 
@@ -75,7 +76,13 @@ pub fn spawn_scene(
                                                 .insert(RigidBody::KinematicPositionBased)
                                                 .insert(Collider::cylinder(0.3,2.5))
                                                 .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-                                                .insert(Valve::new(1., 0));
+                                                .insert(Valve::new(0.1, 0));
+                                        }
+                                        ColliderTypes::Cylinder { dim } => {
+                                            commands.spawn(RigidBody::Fixed)
+                                                .insert(TransformBundle::from_transform(node.transform))
+                                                .insert(
+                                                    Collider::cylinder(dim[0]/2., dim[1]/2.));
                                         }
                                     }
 
@@ -144,7 +151,7 @@ pub fn spawn_engine_room(
         .insert(Valve::new(10., "valve2"));*/
 
 
-    let shaft = Cylinder{
+/*    let shaft = Cylinder{
         radius: 1.,
         height: 20.,
         ..default()
@@ -156,7 +163,7 @@ pub fn spawn_engine_room(
         transform: Transform::default().with_translation(Vec3::new(0.,2.,5.))
             .with_rotation(Quat::from_euler(EulerRot::XYZ, 0., 0., 90.0_f32.to_radians())),
         ..default()
-    }).insert(Name::new("shaft"));
+    }).insert(Name::new("shaft"));*/
 
 }
 
@@ -164,13 +171,12 @@ pub fn spawn_engine_room(
 
 pub fn turn_shaft(
     valves: Query<&Valve, With<Valve>>,
-    mut shaft: Query<&mut Transform, (With<Name>, Without<Valve>)>,
-    server: Res<AssetServer>
+    mut shaft: Query<&mut PointLight, (With<Name>, Without<Valve>)>
 ){
 
     if let Some(valve) = valves.iter().find(|valve| valve.identifier == 0) {
-        if let Ok(mut transform) = shaft.get_single_mut(){
-            transform.rotation *= Quat::from_euler(EulerRot::XYZ, 0., 0.,valve.current_value.to_radians());
+        if let Ok(mut light) = shaft.get_single_mut(){
+            light.intensity = valve.current_value * 100.0;
         }
     }
 }
