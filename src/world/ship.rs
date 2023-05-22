@@ -3,7 +3,8 @@ use bevy::prelude::{GlobalTransform, info, Quat, Query, Transform, With, Without
 use crate::world::types::{Ship, ShipGraphics};
 
 pub fn ship_manager(
-    mut ship_query: Query<(&mut Transform, &mut Ship), (With<Ship>, Without<ShipGraphics>)>
+    mut ship_query: Query<(&mut Transform, &mut Ship), (With<Ship>, Without<ShipGraphics>)>,
+    mut ship_mesh: Query<&mut Transform, (With<ShipGraphics>, Without<Ship>)>
 ){
     if let Ok((mut ship_transform, mut ship)) = ship_query.get_single_mut() {
 

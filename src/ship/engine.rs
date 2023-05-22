@@ -16,8 +16,6 @@ use crate::world::types::{Ship, ShipGraphics};
 #[derive(bevy::ecs::system::Resource, Default)]
 pub struct LevelAsset(pub Handle<bevy::gltf::Gltf>);
 
-
-
 pub fn load_scene(
     mut commands: Commands,
     server: Res<AssetServer>,
@@ -47,11 +45,6 @@ pub fn spawn_scene(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if server.get_load_state(&my.0) == LoadState::Loaded {
-        let ship = commands.spawn(SpatialBundle::from_transform(Transform::from_xyz(0., 0., 0.)))
-            .insert(Ship{
-                roll: 0.
-            }).id();
-
         if let Some(gltf) = assets.get(&my.0) {
             for test in gltf.named_nodes.clone() {
                 if let Some(node) = node_assets.get(&test.1) {
@@ -73,7 +66,7 @@ pub fn spawn_scene(
                                                     Collider::cuboid(dim[0]/2., dim[2]/2., dim[1]/2.));
                                         },
                                         ColliderTypes::Valve{} => {
-                                            let child = commands.spawn(PbrBundle {
+                                            commands.spawn(PbrBundle {
                                                 mesh: prim.mesh.clone(),
                                                 material: prim.material.clone().unwrap(),
                                                 transform: node.transform,
@@ -82,9 +75,8 @@ pub fn spawn_scene(
                                                 .insert(RigidBody::KinematicPositionBased)
                                                 .insert(Collider::cylinder(0.3,2.5))
                                                 .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-                                                .insert(Valve::new(1., 0)).id();
+                                                .insert(Valve::new(1., 0));
 
-                                            commands.entity(ship).add_child(child);
 
                                         }
                                         ColliderTypes::Cylinder { dim } => {
@@ -96,15 +88,13 @@ pub fn spawn_scene(
                                     }
 
                                 } else {
-                                    let child = commands.spawn(PbrBundle{
+                                    commands.spawn(PbrBundle{
                                         mesh: prim.mesh.clone(),
                                         material: prim.material.clone().unwrap(),
                                         transform: node.transform,
                                         visibility: Visibility::Visible,
                                         ..default()
-                                    }).id();
-                                    commands.entity(ship).add_child(child);
-
+                                    });
                                 }
                             }
 
@@ -118,64 +108,6 @@ pub fn spawn_scene(
         }
     }
 }
-
-
-pub fn spawn_engine_room(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    server: Res<AssetServer>,
-){
-    let mesh: Handle<Mesh> = server.load("valve.glb#Mesh0/Primitive0");
-    let _untitled_spoke: Handle<Mesh> = server.load("untitled_spoke.glb#Mesh0/Primitive0");
-
-/*    commands.spawn(PbrBundle {
-        mesh,
-        material: materials.add(Color::RED.into()),
-        transform: Transform::default()
-            .with_translation(Vec3::new(5.,2.,0.))
-            .with_rotation(Quat::from_euler(EulerRot::XYZ, f32::to_radians(90.), 0., 0.))
-            .with_scale(Vec3::new(0.2,0.2,0.2)),
-        ..default()
-    })
-        .insert(RigidBody::KinematicPositionBased)
-        .insert(Collider::cylinder(0.3,2.5))
-        .insert(Friction{
-            coefficient: 0.,
-            combine_rule: CoefficientCombineRule::Min
-        })
-        .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-        .insert(Valve::new(1., 0));*/
-
-/*    commands.spawn(PbrBundle {
-        mesh: untitled_spoke.clone(),
-        material: materials.add(Color::RED.into()),
-        transform: Transform::default().with_translation(Vec3::new(0.,2.,5.))
-            .with_rotation(Quat::from_euler(EulerRot::XYZ, 0., 0., 180.0_f32.to_radians())),
-        ..default()
-    })
-        .insert(RigidBody::KinematicPositionBased)
-        .insert(Collider::cylinder(0.3,2.5))
-        .insert(CollisionGroups::new(Group::ALL ^ Group::GROUP_1, Group::ALL))
-        .insert(Valve::new(10., "valve2"));*/
-
-
-/*    let shaft = Cylinder{
-        radius: 1.,
-        height: 20.,
-        ..default()
-    };
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shaft)),
-        material: materials.add(Color::RED.into()),
-        transform: Transform::default().with_translation(Vec3::new(0.,2.,5.))
-            .with_rotation(Quat::from_euler(EulerRot::XYZ, 0., 0., 90.0_f32.to_radians())),
-        ..default()
-    }).insert(Name::new("shaft"));*/
-
-}
-
 
 
 pub fn turn_shaft(
