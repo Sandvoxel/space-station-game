@@ -44,10 +44,10 @@ pub fn setup_particles(
             value: "my_value".into(),
         })
         .init(InitPositionCone3dModifier {
-        height: 20.1,
+        height: 10.1,
         base_radius: 10.1,
         top_radius: 1.0,
-        dimension: ShapeDimension::Volume,
+        dimension: ShapeDimension::Surface,
     }
     ).init(InitVelocitySphereModifier {
         center: Vec3::ZERO,
@@ -60,7 +60,7 @@ pub fn setup_particles(
 
     commands.spawn(ParticleEffectBundle {
         effect: ParticleEffect::new(effect).with_spawner(spawner),
-        transform: Transform::from_translation(Vec3::new(0., 10., 0.)),
+        transform: Transform::from_translation(Vec3::new(0., 5., -10.)),
         ..default()
     })
         .insert(Particle{});
